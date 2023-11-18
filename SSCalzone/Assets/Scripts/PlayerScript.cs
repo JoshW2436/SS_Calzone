@@ -51,6 +51,10 @@ public class PlayerScript : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetAxis("Cancel") == 1)
+        {
+            Exit();
+        }
         if (stunned == false)
         {
             Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -178,5 +182,14 @@ public class PlayerScript : MonoBehaviour
         yield return new WaitForSeconds(1);
         timer -= 1;
         StartCoroutine(TimerAdvance());
+    }
+
+    public void Exit()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+Application.Quit();
+#endif
     }
 }
