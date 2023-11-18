@@ -3,16 +3,22 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Floor
+  - Ingredient
+  - PizzaLoose
+  - Oven
+  - IngredientBox
+  - Asteroid
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
-  - 
-  - 
+  - IngredientsPIzzas
+  - Asteroid
   - 
   - 
   - 
@@ -40,4 +46,10 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Player
+    uniqueID: 2835188417
+    locked: 0
+  - name: UI
+    uniqueID: 404390261
     locked: 0
