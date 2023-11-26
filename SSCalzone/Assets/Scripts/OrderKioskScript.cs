@@ -15,12 +15,12 @@ public class OrderKioskScript : MonoBehaviour
     public bool pineapple = false;
     private bool levelSet = false;
     //[HideInInspector]
-    public bool[] availableIngredients = new bool [8] ;
+    //public bool[] availableIngredients = new bool [7] ;
     
     // Start is called before the first frame update
     void Start()
     {
-        availableIngredients = new bool[8];
+        /*availableIngredients = new bool[8];
         
             if (sauce == true)
             {
@@ -54,6 +54,7 @@ public class OrderKioskScript : MonoBehaviour
         {
             availableIngredients[7] = true;
         }
+        */
     }
 
 

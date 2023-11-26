@@ -177,7 +177,7 @@ GameObject:
   - component: {fileID: 5575796465175289363}
   - component: {fileID: 4862112136696199849}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: OvenSlider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -418,6 +418,8 @@ MonoBehaviour:
   ingredients: 
   ingredientTotal: 0
   destroyPizza: {fileID: 0}
+  thrownPizza: 0
+  distanceThrown: 0
 --- !u!114 &1653505724647696815
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -434,6 +436,7 @@ MonoBehaviour:
   startTime: 0
   cookBar: {fileID: 5900048683631204627}
   cookingNotifs: {fileID: 7473632276672041313}
+  scoreScript: {fileID: 0}
 --- !u!1 &3138506425066786265
 GameObject:
   m_ObjectHideFlags: 0

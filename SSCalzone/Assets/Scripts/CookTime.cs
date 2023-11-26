@@ -15,11 +15,13 @@ public class CookTime : MonoBehaviour
     public Slider cookBar;
     public TMP_Text cookingNotifs;
     private bool cookingDone = false;
+    [HideInInspector]
+    public PlayerScript scoreScript = null;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        scoreScript = GameObject.Find("PlayerObj").gameObject.GetComponent<PlayerScript>();
     }
 
     // Update is called once per frame
@@ -51,6 +53,10 @@ public class CookTime : MonoBehaviour
             {
                 if (collision.gameObject.GetComponent<PizzaScript>().cooked == false)
                 {
+                    if (collision.gameObject.GetComponent<PizzaScript>().thrownPizza == true)
+                    {
+                        scoreScript.DistanceBonus(collision.gameObject.GetComponent<PizzaScript>().distanceThrown);
+                    }
                     cooking = true;
                     GetComponent<PizzaScript>().inherited = false;
                     GetComponent<PizzaScript>().inheritPizza = collision.gameObject;
@@ -129,4 +135,6 @@ public class CookTime : MonoBehaviour
         }
         return " ";
     }
+
+    // add thing that checks for hit pizza thrown and if its distance is big add to exp
 }

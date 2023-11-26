@@ -12,6 +12,10 @@ public class PizzaScript : MonoBehaviour
     public bool[] ingredients = new bool[10];
     public int ingredientTotal = 0;
     public GameObject destroyPizza = null;
+    public bool thrownPizza = false;
+    public bool blastPizza = false;
+    public float distanceThrown = 0;
+    public LayerMask asteroidMask;
 
     // Start is called before the first frame update
     void Start()
@@ -27,12 +31,27 @@ public class PizzaScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (blastPizza)
+        {
+            if (tag == "PizzaLoose")
+            {
+                if (Physics2D.OverlapCircle(transform.position, 1.5f, asteroidMask) != null)
+                {
+                    Debug.Log("Destroy the asteroid nearby");
+                    Collider2D[] asteroidsTouching = Physics2D.OverlapCircleAll(transform.position, 1.5f, asteroidMask);
+                    foreach (Collider2D a in asteroidsTouching)
+                    {
+                        Destroy(a.gameObject);
+                    }
+                }
+            }
+        }    
         
     }
 
     public void PizzaAdded()
     {
-        Debug.Log("New Pizza!");
+        //Debug.Log("New Pizza!");
         if (inherited == false)
         {
             if (inheritPizza != null)
@@ -51,7 +70,7 @@ public class PizzaScript : MonoBehaviour
             }
             else
             {
-                Debug.Log("ohhh... null pizzer");
+                //Debug.Log("ohhh... null pizzer");
             }
             inherited = true;
         }
@@ -65,5 +84,21 @@ public class PizzaScript : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (tag == "PizzaLoose")
+        {
+            Debug.Log("loose pizza");
+            if (collision.gameObject.tag == "Floor")
+            {
+                thrownPizza = false;
+                distanceThrown = 0;
+                Debug.Log("Hit the wall");
+            }
+
+        }
+        
     }
 }

@@ -10,6 +10,11 @@ public class PizzaBuildingScript : MonoBehaviour
     public TMP_Text pizzaContents;
     public PizzaScript myPizza;
     public float pizzaLaunchSpeed = 50;
+    
+
+    GameObject thrownPizza = null;
+    Vector2 thrownPizzaStart = Vector2.zero;
+    Vector2 thrownPizzaCurrent = Vector2.zero;
     // Start is called before the first frame update
     void Start()
     {
@@ -40,6 +45,15 @@ public class PizzaBuildingScript : MonoBehaviour
         {
             { ThrowPizza(); }
             
+        }
+
+        if (thrownPizza != null)
+        {
+            if (thrownPizza.GetComponent<PizzaScript>().thrownPizza != false)
+            {
+                thrownPizzaCurrent = thrownPizza.transform.position;
+                thrownPizza.GetComponent<PizzaScript>().distanceThrown = Vector2.Distance(thrownPizzaStart,thrownPizzaCurrent);
+            }
         }
     }
 
@@ -103,7 +117,14 @@ public class PizzaBuildingScript : MonoBehaviour
         GameObject newPizza = Instantiate(pizzaPrefab,transform.position+ 0.5f * GetComponentInChildren<MoveAndRotate>().directionVector, transform.rotation);
         newPizza.GetComponent<PizzaScript>().inheritPizza = gameObject;
         newPizza.GetComponent<Rigidbody2D>().velocity = pizzaLaunchSpeed*GetComponentInChildren<MoveAndRotate>().directionVector;
+        if (PlayerPrefs.GetInt("level", 0) >= 15)
+        {
+            newPizza.GetComponent<PizzaScript>().blastPizza = true;
+        }
+        newPizza.GetComponent<PizzaScript>().thrownPizza = true;
         Invoke("ClearPizza", 0.02f);
+        thrownPizza = newPizza;
+        thrownPizzaStart = thrownPizza.transform.position;
     }
 
     public void ClearPizza()

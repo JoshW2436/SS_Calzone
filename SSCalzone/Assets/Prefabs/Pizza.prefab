@@ -135,8 +135,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inheritPizza: {fileID: 0}
+  inherited: 0
+  cooked: 0
   ingredients: 
-  hasDough: 1
+  ingredientTotal: 0
+  destroyPizza: {fileID: 0}
+  thrownPizza: 0
+  blastPizza: 0
+  distanceThrown: 0
+  asteroidMask:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!50 &2880281800419198941
 Rigidbody2D:
   serializedVersion: 4
@@ -153,7 +162,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 15f9a2ba6a9d188429a898fafd595d03, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0

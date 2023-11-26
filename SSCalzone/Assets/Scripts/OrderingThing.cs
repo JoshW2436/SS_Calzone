@@ -42,11 +42,11 @@ public class OrderingThing : MonoBehaviour
                     myOrder[0] = true;
                     myOrder[1] = true;
                     //int extrasCount = 0;
-                    for (int i = 0; i < 1; i++)
-                    {
-                        GetOrderItem();
+                    //for (int i = 0; i < 1; i++)
+                    //{
+                       // GetOrderItem();
                         
-                    }
+                    //}
                 }
                 break;
 
@@ -55,7 +55,7 @@ public class OrderingThing : MonoBehaviour
                     myOrder[0] = true;
                     myOrder[1] = true;
                     //int extrasCount = 0;
-                    for (int i = 0; i < 2; i++)
+                    for (int i = 0; i < 1; i++)
                     {
 
                         GetOrderItem();
@@ -113,29 +113,38 @@ public class OrderingThing : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.tag == "PizzaLoose")
-        {
+        {            
             if (collision.GetComponent<PizzaScript>().cooked)
             {
-                if (CheckOrder(collision.gameObject) == true)
+                if (collision.GetComponent<PizzaScript>().thrownPizza == true)
                 {
-                    StartCoroutine(PizzaMessage("Correct Pizza! Order Fulfilled!"));
-                    
-                    
-                    CreateOrder(myDifficulty);       
+                    scoreScript.DistanceBonus(collision.GetComponent<PizzaScript>().distanceThrown);
                 }
-                else
-                {
-                    StartCoroutine(PizzaMessage("Wrong Pizza!"));
-                }
-                Destroy(collision.gameObject);
+                    if (CheckOrder(collision.gameObject) == true)
+                    {
+                        StartCoroutine(PizzaMessage("Correct Pizza! Order Fulfilled!"));
+
+                        if (scoreScript != null)
+                        {
+                            scoreScript.score += 100 * (myDifficulty + 1);
+                            scoreScript.experiencePoints += 200 + 100 * (myDifficulty + 1);
+                            scoreScript.StartCoroutine("ShowGameMessage","Pizza Completed! +"+(200 + 100 * (myDifficulty + 1)).ToString()+"XP");
+                            PlayerPrefs.SetInt("exP", scoreScript.experiencePoints);
+                            PlayerPrefs.SetInt("LRP", PlayerPrefs.GetInt("LRP", 0)+1);
+                    }
+                        CreateOrder(myDifficulty);
+                    }
+                    else
+                    {
+                        StartCoroutine(PizzaMessage("Wrong Pizza!"));
+                    }
+                    Destroy(collision.gameObject);
+                
             }
             else
             {
                 StartCoroutine(PizzaMessage("Pizzas have to be cooked!"));
-                if (scoreScript != null)
-                {
-                    scoreScript.score += 100;
-                }
+                
             }
         }
     }
@@ -158,11 +167,11 @@ public class OrderingThing : MonoBehaviour
         int randVal = (UnityEngine.Random.Range(2, 8));
         bool foundVal = false;
         bool availVal = false;
-        Debug.Log("Guh" + randVal.ToString());
+        //Debug.Log("Guh" + randVal.ToString());
        // do
         {
             randVal = (UnityEngine.Random.Range(2, 8));
-            if (GetComponentInParent<OrderKioskScript>().availableIngredients[randVal] == true)
+            //if (GetComponentInParent<OrderKioskScript>().availableIngredients[randVal] == true)
             {
                 availVal = true;
                /// break;
@@ -174,7 +183,7 @@ public class OrderingThing : MonoBehaviour
         {
             myOrder[randVal] = true;
             orderTxt.text = orderTxt.text + "<br>" + GetIngredientName(randVal);
-            Debug.Log("found one!!");
+            //Debug.Log("found one!!");
         }
         else
         {
@@ -185,12 +194,12 @@ public class OrderingThing : MonoBehaviour
                 {
                     myOrder[randVal] = true;
                     orderTxt.text = orderTxt.text + "<br>" + GetIngredientName(randVal);
-                    Debug.Log("did!");
+                    //Debug.Log("did!");
                     //break;
                 }
                 else
                 {
-                    Debug.Log("didnt!");
+                    //Debug.Log("didnt!");
                 }
             }
            // while (foundVal == false);

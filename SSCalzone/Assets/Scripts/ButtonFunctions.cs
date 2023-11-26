@@ -6,7 +6,12 @@ using UnityEngine.SceneManagement;
 
 public class ButtonFunctions : MonoBehaviour
 {
+    public int pageValue = 0;
 
+    private void Update()
+    {
+        Debug.Log(pageValue);
+    }
 
     public void Play(string levelName)
     {
@@ -20,5 +25,26 @@ public class ButtonFunctions : MonoBehaviour
 #else
 Application.Quit();
 #endif
+    }
+
+    public void NewGame()
+    {
+        PlayerPrefs.DeleteAll();
+        pageValue = 1;
+    }
+
+    public void Continue()
+    {
+        pageValue = 1;
+    }
+
+    public void PlayNewData()
+    {
+        pageValue = 2;
+    }
+
+    public void ShowPage(int page)
+    {
+        pageValue = page;
     }
 }
