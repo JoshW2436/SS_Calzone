@@ -10,11 +10,15 @@ public class PizzaBuildingScript : MonoBehaviour
     public TMP_Text pizzaContents;
     public PizzaScript myPizza;
     public float pizzaLaunchSpeed = 50;
+
+    public AudioSource throwSFX = null;
     
 
-    GameObject thrownPizza = null;
-    Vector2 thrownPizzaStart = Vector2.zero;
+    public GameObject thrownPizza = null;
+    public Vector2 thrownPizzaStart = Vector2.zero;
     Vector2 thrownPizzaCurrent = Vector2.zero;
+
+    public GameObject spriteBoy = null;
     // Start is called before the first frame update
     void Start()
     {
@@ -55,6 +59,18 @@ public class PizzaBuildingScript : MonoBehaviour
                 thrownPizza.GetComponent<PizzaScript>().distanceThrown = Vector2.Distance(thrownPizzaStart,thrownPizzaCurrent);
             }
         }
+
+        pizzaContents.text = "My Pizza:";
+        myPizza.ingredientTotal = 0;
+        for (int i = 0; i < 9; i++)
+        {
+            if (myPizza.ingredients[i] == true)
+            {
+                myPizza.ingredientTotal += 1;
+                pizzaContents.text = pizzaContents.text + "<br>" + GetComponentInParent<PizzaBuildingScript>().GetIngredientName(i);
+            }
+
+        }
     }
 
     private void FixedUpdate()
@@ -62,15 +78,6 @@ public class PizzaBuildingScript : MonoBehaviour
         
     }
 
-    /*private void OnTriggerEnter2D(Collider2D collision)
-    {
-        Debug.Log("THERES BEEN AN IMPACT");
-        int ingredientType = collision.GetComponent<MyIngredient>().myIngredient;
-        ingredients[ingredientType]=true;
-        Destroy(collision.gameObject);
-        pizzaContents.text = pizzaContents.text + "<br>"+GetIngredientName(ingredientType);
-    }
-    */
 
     public string GetIngredientName(int arrPosition)
     {
@@ -114,6 +121,11 @@ public class PizzaBuildingScript : MonoBehaviour
 
     public void ThrowPizza()
     {
+        if (throwSFX.enabled)
+        {
+            throwSFX.Play();
+        }
+        //spriteBoy.GetComponent<SquashStretch>().squashing = true;
         GameObject newPizza = Instantiate(pizzaPrefab,transform.position+ 0.5f * GetComponentInChildren<MoveAndRotate>().directionVector, transform.rotation);
         newPizza.GetComponent<PizzaScript>().inheritPizza = gameObject;
         newPizza.GetComponent<Rigidbody2D>().velocity = pizzaLaunchSpeed*GetComponentInChildren<MoveAndRotate>().directionVector;

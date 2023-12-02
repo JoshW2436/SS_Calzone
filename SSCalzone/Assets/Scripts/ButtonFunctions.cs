@@ -10,7 +10,7 @@ public class ButtonFunctions : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log(pageValue);
+        //Debug.Log(pageValue);
     }
 
     public void Play(string levelName)

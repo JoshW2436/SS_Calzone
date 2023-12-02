@@ -13,7 +13,7 @@ public class OrderKioskScript : MonoBehaviour
     public bool bellPeppers = false;
     public bool olives = false;
     public bool pineapple = false;
-    private bool levelSet = false;
+    
     //[HideInInspector]
     //public bool[] availableIngredients = new bool [7] ;
     
@@ -58,27 +58,7 @@ public class OrderKioskScript : MonoBehaviour
     }
 
 
-    // Update is called once per frame
-    void Update()
-    {
-
-       // if (levelSet == false)
-        //{
-            
-            //int listShorten = 0;
-           // for (int i = 0; i < availableIngredients.Length; i++)
-            //{
-            //    if (availableIngredients[i] == -1)
-            //    {
-            //        i = listShorten;
-            //        break;
-            //    }
-            //}
-            //Array.Resize(ref availableIngredients, listShorten+1);
-            levelSet = true;
-       // }
-       
-    }
+    
 
     
 }

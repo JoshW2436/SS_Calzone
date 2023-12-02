@@ -8,11 +8,13 @@ public class MyIngredient : MonoBehaviour
     public int myIngredient = 0;
     public TMP_Text myName;
     private bool named = false;
+    public ParticleSystemRenderer myParticleSystem;
+    private bool spriteFound = false;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        myParticleSystem = GetComponent<ParticleSystemRenderer>();
     }
 
     // Update is called once per frame
@@ -22,6 +24,30 @@ public class MyIngredient : MonoBehaviour
         {
             myName.text = GetIngredientName(myIngredient);
             named = true;
+        }
+
+        if (tag == "IngredientBox")
+        {
+            if (spriteFound == false)
+            {
+                Sprite quickSearch = Resources.Load<Sprite>("Ingredient Windows/" + myName.text + "Window");
+                //Debug.Log(quickSearch.ToString());
+                if (quickSearch != null)
+                {
+                    GetComponent<SpriteRenderer>().sprite = quickSearch;
+                    transform.localScale = new Vector3(1f, 1f, 1f);
+                    GetComponent<CircleCollider2D>().radius = 3;
+                }
+
+                Material quickSearch2 = Resources.Load<Material>("IngredientMats/" + myName.text + "Mat");
+                if (quickSearch2 != null)
+                {
+                    myParticleSystem.material = quickSearch2;
+                }
+                spriteFound = true;
+            }
+            
+            
         }
     }
 

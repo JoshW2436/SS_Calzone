@@ -136,12 +136,11 @@ public class ResultManager : MonoBehaviour
             {
                 int lastRoundPizzas = PlayerPrefs.GetInt("LRP", 0);
                 int lastRoundDifficulty = PlayerPrefs.GetInt("LRD", 0);
-                ratio.text = lastRoundPizzas.ToString() + "/" + difficultyPizza[lastRoundDifficulty].ToString();
+                ratio.text = "Orders Completed: "+ lastRoundPizzas.ToString() + "/" + difficultyPizza[lastRoundDifficulty].ToString();
                 if (levelCompletedBonus == false)
                 {
                     if (lastRoundPizzas >= difficultyPizza[lastRoundDifficulty])
                     {
-                        Debug.Log("You did it take some pizzer points!");
                         scoreScript.experiencePoints += 300 * (lastRoundDifficulty + 1);
                         PlayerPrefs.SetInt("exP", scoreScript.experiencePoints);
                         scoreScript.StartCoroutine("ShowGameMessage", "You completed all required orders! +" + (300 * (lastRoundDifficulty + 1)).ToString() + "XP");

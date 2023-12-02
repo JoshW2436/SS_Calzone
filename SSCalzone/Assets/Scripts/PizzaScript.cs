@@ -16,6 +16,9 @@ public class PizzaScript : MonoBehaviour
     public bool blastPizza = false;
     public float distanceThrown = 0;
     public LayerMask asteroidMask;
+    public GameObject asteroidBreakPrefab = null;
+
+    public AudioSource hitSound = null;
 
     // Start is called before the first frame update
     void Start()
@@ -42,6 +45,7 @@ public class PizzaScript : MonoBehaviour
                     foreach (Collider2D a in asteroidsTouching)
                     {
                         Destroy(a.gameObject);
+                        Instantiate(asteroidBreakPrefab, a.gameObject.transform.position, Quaternion.identity);
                     }
                 }
             }
@@ -51,7 +55,6 @@ public class PizzaScript : MonoBehaviour
 
     public void PizzaAdded()
     {
-        //Debug.Log("New Pizza!");
         if (inherited == false)
         {
             if (inheritPizza != null)
@@ -61,7 +64,6 @@ public class PizzaScript : MonoBehaviour
                 for (int i = 0; i < ingredients.Length; i++)
                 {
                     ingredients[i] = otherPizza.ingredients[i];
-
                 }
                 if (destroyPizza != null)
                 {
@@ -70,10 +72,11 @@ public class PizzaScript : MonoBehaviour
             }
             else
             {
-                //Debug.Log("ohhh... null pizzer");
+                //Debug.Log("Null Pizza");
             }
             inherited = true;
         }
+
         if (inited == false)
         {
             for (int i = 0; i < ingredients.Length; i++)
@@ -90,15 +93,26 @@ public class PizzaScript : MonoBehaviour
     {
         if (tag == "PizzaLoose")
         {
-            Debug.Log("loose pizza");
+            if (hitSound.enabled)
+            {
+                hitSound.Play();
+            }
+            
+            //Debug.Log("loose pizza");
             if (collision.gameObject.tag == "Floor")
             {
                 thrownPizza = false;
                 distanceThrown = 0;
-                Debug.Log("Hit the wall");
+                //Debug.Log("Hit the wall");
             }
 
         }
         
+    }
+
+    public void GetANewPizza()
+    {
+        inherited = false;
+        PizzaAdded();
     }
 }

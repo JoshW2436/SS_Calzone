@@ -26,8 +26,10 @@ public class PlayerScript : MonoBehaviour
     bool startedFuelCooldown = false;
     bool fillingFuel = false;
     Rigidbody2D rb;
-    
-    
+
+    public GameObject spriteBoy = null;
+
+
 
     public SpriteRenderer armIcon = null;
     public Sprite blastSprite;
@@ -62,6 +64,7 @@ public class PlayerScript : MonoBehaviour
     public TMP_Text scoreText;
     public TMP_Text lvlTxt;
     public TMP_Text messageText;
+    public TMP_Text timerText;
 
     public Slider timerSlider;
     public Slider expSlider;
@@ -70,10 +73,30 @@ public class PlayerScript : MonoBehaviour
 
     public AudioSource whackSFX;
     public AudioSource lvlUpSFX;
+    public AudioSource thrusterSFX;
+    public AudioSource messageSound;
+
+    public ParticleSystem smokeParticles;
+
+    public GameObject asteroidBreakPrefab = null;
+
+    float defaultEmissionRate = 0;
+
+    public Animator tEndAnim = null;
+
+    bool startedTimer = false;
+
 
     // Start is called before the first frame update
+
+    private void Awake()
+    {
+        
+    }
     void Start()
     {
+
+        
         PlayerPrefs.SetInt("LRP", 0);
         PlayerPrefs.SetInt("LRD", 0);
         if (SceneManager.GetActiveScene().name == "Easy")
@@ -102,7 +125,7 @@ public class PlayerScript : MonoBehaviour
             Debug.Log("Hey you need a rigidbody!");
         }
         timer = timerDefault;
-        StartCoroutine(TimerAdvance());
+        
         thrusterGasMax = PlayerPrefs.GetInt("thrusterMax", 100);
         gasFilledPerSecond = PlayerPrefs.GetInt("thrusterFillSpeed", 20);
         experiencePoints = PlayerPrefs.GetInt("exP", 0);
@@ -152,20 +175,24 @@ public class PlayerScript : MonoBehaviour
             {
                 messageText = text;
             }
+            if (text.name == "TimerText")
+            {
+                timerText = text;
+            }
         }
         messageText.text = "";
         //timerText.text = "Time Remaining: " + timeLeft.ToString();
+        int minutes = Mathf.FloorToInt(timer / 60F);
+        int seconds = Mathf.FloorToInt(timer - minutes * 60);
 
+        string formattedTime = string.Format("{0:0}:{1:00}", minutes, seconds);
+        timerText.text = formattedTime;
+        defaultEmissionRate = 20;
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            LevelUp();
-            experiencePoints = 0;
-            PlayerPrefs.SetInt("exP", experiencePoints);
-        }
+        
         if (!deflectUnlocked)
         {
             if (currentLevel >= 10)
@@ -174,8 +201,14 @@ public class PlayerScript : MonoBehaviour
             }
         }
         
+        if (startedTimer == false)
+        {
+            StartCoroutine("TimerAdvance");
+            startedTimer = true;
+        }
+
         PlayerPrefs.SetInt("nExP", levelOneExp + (levelAddedExp * (currentLevel)));
-        expText.text = "Experience Points:" + PlayerPrefs.GetInt("exP", 0).ToString();
+        expText.text = PlayerPrefs.GetInt("exP", 0).ToString()+" XP";
         lvlTxt.text = "Level " + PlayerPrefs.GetInt("level", 0).ToString();
         if (PlayerPrefs.GetInt("exP", 0) >= levelOneExp+(levelAddedExp*currentLevel))//level one exp +(levelAddedExp*currentLevel)
         {
@@ -193,10 +226,25 @@ public class PlayerScript : MonoBehaviour
             targetPosition = mouseWorldPosition;
             if (Input.GetMouseButton(1) == true)
             {
+
                 Vector3 directionVector = targetPosition - transform.position;
                 directionVector.Normalize();
                 transform.right = directionVector;
+
+                if (!smokeParticles.isPlaying)
+                {
+                    smokeParticles.Play();
+                }
+                
             }
+            else
+            {
+                if (smokeParticles.isPlaying)
+                {
+                    smokeParticles.Stop();
+                }
+            }
+
 
             if (fillingFuel == true)
             {
@@ -210,6 +258,13 @@ public class PlayerScript : MonoBehaviour
                     fillingFuel = false;
                 }
 
+            }
+        }
+        else
+        {
+            if (smokeParticles.isPlaying)
+            {
+                smokeParticles.Stop();
             }
         }
 
@@ -255,16 +310,23 @@ public class PlayerScript : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-       // rb.SetRotation();
+        // rb.SetRotation();
+        var ems = smokeParticles.emission;
         if (Input.GetMouseButton(1)==false)
         {
+            tEndAnim.SetBool("ThrusterOn", false);
+            ems.rateOverTime = defaultEmissionRate * (thrusterGas / thrusterGasMax);
+            thrusterSFX.Stop();
+            
             if (Input.GetMouseButton(0) == true)
             {
-                armIcon.enabled = true;
+                tEndAnim.SetBool("GrabberOn", true);
+                //armIcon.enabled = true;
                 armIcon.sprite = grabSprite;
             }
             else
             {
+                tEndAnim.SetBool("GrabberOn", false);
                 armIcon.enabled = false;
             }
             if (startedFuelCooldown == false && thrusterGas < thrusterGasMax)
@@ -276,26 +338,43 @@ public class PlayerScript : MonoBehaviour
         }
         else
         {
+            
+            
             if (stunned == false)
             {
+                
                 //transform.right = thrustDirection.rotation;
                 thrusterGas -= gasSpentPerSecond * Time.deltaTime;
 
 
                 if (thrusterGas > 1)
                 {
-                    armIcon.enabled = true;
+                    tEndAnim.SetBool("ThrusterOn", true);
+                    if (thrusterSFX.isPlaying == false)
+                    {
+                        if (thrusterSFX.enabled)
+                        {
+                            thrusterSFX.Play();
+                        }
+                    }
+                    
+                    thrusterSFX.pitch = thrusterGas / thrusterGasMax;
+                    //armIcon.enabled = true;
                     armIcon.sprite = blastSprite;
                     fillingFuel = false;
                     startedFuelCooldown = false;
                     rb.AddForce(transform.right * -thrustSpeed, 0);
+                    
+                    ems.rateOverTime = defaultEmissionRate * (thrusterGas / thrusterGasMax);
                 }
                 else
                 {
+                    tEndAnim.SetBool("ThrusterOn", false);
+                    ems.rateOverTime = defaultEmissionRate * (thrusterGas / thrusterGasMax);
                     if (startedFuelCooldown == false)
                     {
                         armIcon.enabled = false;
-                        Debug.Log("restarting fuel countdown, no more fuel");
+                        //Debug.Log("restarting fuel countdown, no more fuel");
                         Invoke("RestartFuelFill", thrusterRechargeCooldown);
                         startedFuelCooldown = true;
                     }
@@ -303,6 +382,7 @@ public class PlayerScript : MonoBehaviour
             }
             else
             {
+                tEndAnim.SetBool("ThrusterOn", false);
                 armIcon.enabled = false;
             }
         }
@@ -311,13 +391,14 @@ public class PlayerScript : MonoBehaviour
         {
             if (Physics2D.OverlapCircle(transform.position, 3, asteroidMask) != null)
             {
-                Debug.Log("Destroy the asteroid nearby");
+                //Debug.Log("Destroy the asteroid nearby");
                 deflectAvailable = false;
                 deflectTimer = 0;
                 Collider2D[] asteroidsTouching = Physics2D.OverlapCircleAll(transform.position, 3, asteroidMask);
                 foreach (Collider2D a in asteroidsTouching)
                 {
                     Destroy(a.gameObject);
+                    Instantiate(asteroidBreakPrefab, a.gameObject.transform.position, Quaternion.identity);
                 }
             }
         }
@@ -325,15 +406,18 @@ public class PlayerScript : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("We are colliding with "+collision.gameObject.name);
+        //Debug.Log("We are colliding with "+collision.gameObject.name);
         if (collision.gameObject.tag == "Asteroid")
         {
-            whackSFX.Play();
+            //spriteBoy.GetComponent<SquashStretch>().squashing = true;
+            if (whackSFX.enabled)
+            {
+                whackSFX.Play();
+            }
             stunned = true;
             Invoke("Unstun", stunCooldown);
             rb.AddTorque(100);
-            
-            
+            Instantiate(asteroidBreakPrefab,collision.gameObject.transform.position, Quaternion.identity);
             Destroy(collision.gameObject);
         }
     }
@@ -359,14 +443,15 @@ public class PlayerScript : MonoBehaviour
         if (SceneManager.GetActiveScene().name != "TutorialLevel")
         {
             yield return new WaitForSeconds(1);
-            if (Input.GetKey(KeyCode.LeftShift))
-            {
-                timer -= 40;
-            }
-            else
+            
             {
                 timer -= 1;
             }
+            int minutes = Mathf.FloorToInt(timer / 60F);
+            int seconds = Mathf.FloorToInt(timer - minutes * 60);
+
+            string formattedTime = string.Format("{0:0}:{1:00}", minutes, seconds);
+            timerText.text = formattedTime;
 
             StartCoroutine(TimerAdvance());
             if (timer < 0)
@@ -430,7 +515,7 @@ Application.Quit();
                 }
                 else
                 {
-                    asteroidCooldown -= 0.2f;
+                    asteroidCooldown -= 0.5f;
                     PlayerPrefs.SetFloat("deflectCooldown", asteroidCooldown);
                     return;
                     //improve cooldown for asteroid deflect
@@ -451,7 +536,10 @@ Application.Quit();
     }
     public void LevelUp()
     {
-        lvlUpSFX.Play();
+        if (lvlUpSFX.enabled)
+        {
+            lvlUpSFX.Play();
+        }
         experiencePoints = experiencePoints - (levelOneExp + (levelAddedExp * currentLevel));
         LevelUpBonus(currentLevel);
         currentLevel += 1;
@@ -463,8 +551,12 @@ Application.Quit();
 
     public IEnumerator ShowGameMessage(string message)
     {
-        Debug.Log(message);
+        //Debug.Log(message);
         messageText.text = message;
+        if (messageSound.enabled)
+        {
+            messageSound.Play();
+        }
         yield return new WaitForSeconds(5);
         messageText.text = "";
     }

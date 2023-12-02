@@ -13,6 +13,9 @@ public class OrderingThing : MonoBehaviour
     public TMP_Text orderTxt;
     public TMP_Text orderNotifs;
     public PlayerScript scoreScript;
+    public AudioSource missAudio;
+    public AudioSource scoreAudio;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -22,15 +25,12 @@ public class OrderingThing : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.LeftShift)) { CreateOrder(myDifficulty); }
-    }
+    
 
     void CreateOrder(int Difficulty)
     {
         orderTxt.text = "";
-        orderTxt.text = orderTxt.text + "<br>Sauce\nCheese";
+        orderTxt.text = orderTxt.text + "Sauce, Cheese";
         for (int i = 0;i<myOrder.Length;i++)
         {
             myOrder[i] = false;
@@ -95,21 +95,6 @@ public class OrderingThing : MonoBehaviour
         
     }
 
-    /*
-    public void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.tag == "PizzaLoose")
-        {
-            //the way this works: we go through the order array, and find each piece. if ingredients[myOrder[i]] = true, good deal.
-            if (CheckOrder(collision.gameObject) == true)
-            {
-                Debug.Log("successful order!");
-            }
-            Destroy(collision.gameObject);
-        }
-    }
-    */
-
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.tag == "PizzaLoose")
@@ -120,31 +105,42 @@ public class OrderingThing : MonoBehaviour
                 {
                     scoreScript.DistanceBonus(collision.GetComponent<PizzaScript>().distanceThrown);
                 }
-                    if (CheckOrder(collision.gameObject) == true)
+                if (CheckOrder(collision.gameObject) == true)
+                {
+                    StartCoroutine(PizzaMessage("Correct Pizza! Order Fulfilled!"));
+                    GetComponent<SquashStretch>().squashing = true;
+                    if (scoreScript != null)
                     {
-                        StartCoroutine(PizzaMessage("Correct Pizza! Order Fulfilled!"));
-
-                        if (scoreScript != null)
+                        scoreScript.score += 100 * (myDifficulty + 1);
+                        scoreScript.experiencePoints += 200 + 100 * (myDifficulty + 1);
+                        scoreScript.StartCoroutine("ShowGameMessage","Pizza Completed! +"+(200 + 100 * (myDifficulty + 1)).ToString()+"XP");
+                        PlayerPrefs.SetInt("exP", scoreScript.experiencePoints);
+                        PlayerPrefs.SetInt("LRP", PlayerPrefs.GetInt("LRP", 0)+1);
+                        if (scoreAudio.enabled)
                         {
-                            scoreScript.score += 100 * (myDifficulty + 1);
-                            scoreScript.experiencePoints += 200 + 100 * (myDifficulty + 1);
-                            scoreScript.StartCoroutine("ShowGameMessage","Pizza Completed! +"+(200 + 100 * (myDifficulty + 1)).ToString()+"XP");
-                            PlayerPrefs.SetInt("exP", scoreScript.experiencePoints);
-                            PlayerPrefs.SetInt("LRP", PlayerPrefs.GetInt("LRP", 0)+1);
+                            scoreAudio.Play();
+                        }
                     }
-                        CreateOrder(myDifficulty);
-                    }
-                    else
+                    CreateOrder(myDifficulty);
+                }
+                else
+                {
+                    StartCoroutine(PizzaMessage("Wrong Pizza!"));
+                    if (missAudio.enabled)
                     {
-                        StartCoroutine(PizzaMessage("Wrong Pizza!"));
+                        missAudio.Play();
                     }
-                    Destroy(collision.gameObject);
+                }
+                Destroy(collision.gameObject);
                 
             }
             else
             {
                 StartCoroutine(PizzaMessage("Pizzas have to be cooked!"));
-                
+                if (missAudio.enabled)
+                {
+                    missAudio.Play();
+                }
             }
         }
     }
@@ -165,15 +161,13 @@ public class OrderingThing : MonoBehaviour
     {
         
         int randVal = (UnityEngine.Random.Range(2, 8));
-        bool foundVal = false;
-        bool availVal = false;
+        
         //Debug.Log("Guh" + randVal.ToString());
        // do
         {
             randVal = (UnityEngine.Random.Range(2, 8));
             //if (GetComponentInParent<OrderKioskScript>().availableIngredients[randVal] == true)
             {
-                availVal = true;
                /// break;
             }
         }
@@ -182,7 +176,7 @@ public class OrderingThing : MonoBehaviour
         if (myOrder[randVal] == false)
         {
             myOrder[randVal] = true;
-            orderTxt.text = orderTxt.text + "<br>" + GetIngredientName(randVal);
+            orderTxt.text = orderTxt.text + ", " + GetIngredientName(randVal);
             //Debug.Log("found one!!");
         }
         else
@@ -193,7 +187,7 @@ public class OrderingThing : MonoBehaviour
                 if (myOrder[randVal] == false)
                 {
                     myOrder[randVal] = true;
-                    orderTxt.text = orderTxt.text + "<br>" + GetIngredientName(randVal);
+                    orderTxt.text = orderTxt.text + ", " + GetIngredientName(randVal);
                     //Debug.Log("did!");
                     //break;
                 }

@@ -9,6 +9,10 @@ public class GrabbingIngredients : MonoBehaviour
     private GameObject ovnTouching = null;
     private GameObject pzaTouching = null;
     private GameObject inbTouching = null;
+    private GameObject destroyPizza = null;
+
+    public AudioSource grabSFX = null;
+    public AudioSource missSFX = null;
     // Start is called before the first frame update
     void Start()
     {
@@ -40,10 +44,13 @@ public class GrabbingIngredients : MonoBehaviour
             {
                 if (GetComponentInParent<PizzaScript>().cooked == false)
                 { 
-                    Debug.Log("THERES BEEN AN IMPACT");
                     int ingredientType = ingTouching.GetComponent<MyIngredient>().myIngredient;
                     if (GetComponentInParent<PizzaScript>().ingredients[ingredientType] == false)
                     {
+                        if (grabSFX.enabled)
+                        {
+                            grabSFX.Play();
+                        }
                         GetComponentInParent<PizzaScript>().ingredientTotal += 1;
                         GetComponentInParent<PizzaScript>().ingredients[ingredientType] = true;
 
@@ -52,25 +59,32 @@ public class GrabbingIngredients : MonoBehaviour
                         GetComponentInParent<PizzaBuildingScript>().pizzaContents.text = GetComponentInParent<PizzaBuildingScript>().pizzaContents.text + "<br>" + GetComponentInParent<PizzaBuildingScript>().GetIngredientName(ingredientType);
                     }
                 }
+                else
+                {
+
+                }
             }
             
         }
-        if (Input.GetMouseButtonDown(0) == true)
+        if (Input.GetMouseButton(0) == true)
         {
-            if (pzaTouching != null)
+            if (pzaTouching != null && (Input.GetMouseButtonDown(0) == true))
             {
-                if (GetComponentInParent<PizzaScript>().ingredientTotal != 0)
+                if (GetComponentInParent<PizzaScript>().ingredientTotal > 0)
                 {
                     GetComponentInParent<PizzaBuildingScript>().ThrowPizza();
                 }
 
                 GetComponentInParent<PizzaScript>().inheritPizza = pzaTouching;
-                GetComponentInParent<PizzaScript>().inherited = false;
-                GetComponentInParent<PizzaScript>().PizzaAdded();
+                GetComponentInParent<PizzaScript>().Invoke("GetANewPizza", 0.05f);
                 //ovnTouching.GetComponent<CookTime>().Invoke("ClearPizza", 0.02f);
                 //Debug.Log("starting up!");
                 for (int i = 0; i < 10; i++)
                 {
+                    if (grabSFX.enabled)
+                    {
+                        grabSFX.Play();
+                    }
                     if (pzaTouching.GetComponent<PizzaScript>().ingredients[i] == true)
                     {
                         GetComponentInParent<PizzaScript>().ingredientTotal += 1;
@@ -78,46 +92,91 @@ public class GrabbingIngredients : MonoBehaviour
                         //Debug.Log("yeah we at " + i.ToString());
                     }
                 }
-                Destroy(pzaTouching.gameObject);
-                pzaTouching = null;
+                Invoke("DestroyPizza", 0.06f);
+                //Destroy();
+                destroyPizza = pzaTouching;
             }
             else
             {
-                if (ovnTouching != null)
+                if (ovnTouching != null && (Input.GetMouseButtonDown(0) == true))
                 {
+                    
                     if (GetComponentInParent<PizzaScript>().ingredientTotal != 0)
                     {
-                        GetComponentInParent<PizzaBuildingScript>().ThrowPizza();
-                    }
-                    GetComponentInParent<PizzaScript>().inheritPizza = ovnTouching;
-                    GetComponentInParent<PizzaScript>().inherited = false;
-                    GetComponentInParent<PizzaScript>().PizzaAdded();
-                    ovnTouching.GetComponent<CookTime>().Invoke("ClearPizza", 0.02f);
-                    //Debug.Log("starting up!");
-                    for (int i = 0; i < 9; i++)
-                    {
-                        if (ovnTouching.GetComponent<PizzaScript>().ingredients[i] == true)
+                        PizzaBuildingScript blip = GetComponentInParent<PizzaBuildingScript>();
+                        if (blip.throwSFX.enabled)
                         {
-                            GetComponentInParent<PizzaScript>().ingredientTotal += 1;
-                            GetComponentInParent<PizzaBuildingScript>().pizzaContents.text = GetComponentInParent<PizzaBuildingScript>().pizzaContents.text + "<br>" + GetComponentInParent<PizzaBuildingScript>().GetIngredientName(i);
+                            blip.throwSFX.Play();
                         }
-
+                        //spriteBoy.GetComponent<SquashStretch>().squashing = true;
+                        GameObject newPizza = Instantiate(blip.pizzaPrefab, blip.transform.position + 0.5f * blip.GetComponentInChildren<MoveAndRotate>().directionVector, blip.transform.rotation);
+                        newPizza.GetComponent<PizzaScript>().inheritPizza = blip.gameObject;
+                        newPizza.GetComponent<Rigidbody2D>().velocity = blip.pizzaLaunchSpeed * blip.GetComponentInChildren<MoveAndRotate>().directionVector;
+                        if (PlayerPrefs.GetInt("level", 0) >= 15)
+                        {
+                            newPizza.GetComponent<PizzaScript>().blastPizza = true;
+                        }
+                        newPizza.GetComponent<PizzaScript>().thrownPizza = true;
+                        blip.Invoke("ClearPizza", 0.02f);
+                        blip.thrownPizza = newPizza;
+                        blip.thrownPizzaStart = blip.thrownPizza.transform.position;
                     }
-                    if (ovnTouching.GetComponent<PizzaScript>().cooked == true)
+                    
+                    if (ovnTouching.GetComponent<PizzaScript>().ingredientTotal != 0)
                     {
-                        GetComponentInParent<PizzaBuildingScript>().pizzaContents.text = GetComponentInParent<PizzaBuildingScript>().pizzaContents.text + "<br>COOKED!";
+
+                        if (grabSFX.enabled)
+                        {
+                            grabSFX.Play();
+                        }
+                        GetComponentInParent<PizzaScript>().inheritPizza = ovnTouching;
+                        GetComponentInParent<PizzaScript>().Invoke("GetANewPizza", 0.03f);
+                        //GetComponentInParent<PizzaScript>().inherited = false;
+                        //GetComponentInParent<PizzaScript>().PizzaAdded();
+                        ovnTouching.GetComponent<CookTime>().Invoke("ClearPizza", 0.04f);
+
+                        //Debug.Log("starting up!");
+                        for (int i = 0; i < 9; i++)
+                        {
+                            if (ovnTouching.GetComponent<PizzaScript>().ingredients[i] == true)
+                            {
+                                GetComponentInParent<PizzaScript>().ingredientTotal += 1;
+                                GetComponentInParent<PizzaBuildingScript>().pizzaContents.text = GetComponentInParent<PizzaBuildingScript>().pizzaContents.text + "<br>" + GetComponentInParent<PizzaBuildingScript>().GetIngredientName(i);
+                            }
+
+                        }
+                        if (ovnTouching.GetComponent<PizzaScript>().cooked == true)
+                        {
+                            GetComponentInParent<PizzaBuildingScript>().pizzaContents.text = GetComponentInParent<PizzaBuildingScript>().pizzaContents.text + "<br>COOKED!";
+                        }
                     }
                 }
                 else
                 {
                     if (inbTouching != null)
                     {
-                        int ingredientType = inbTouching.GetComponent<MyIngredient>().myIngredient;
-                        if (GetComponentInParent<PizzaScript>().ingredients[ingredientType] == false)
+                        inbTouching.GetComponent<SquashStretch>().squashing = true;
+                        if (GetComponentInParent<PizzaScript>().cooked == false)
                         {
-                            GetComponentInParent<PizzaScript>().ingredientTotal += 1;
-                            GetComponentInParent<PizzaScript>().ingredients[ingredientType] = true;
-                            GetComponentInParent<PizzaBuildingScript>().pizzaContents.text = GetComponentInParent<PizzaBuildingScript>().pizzaContents.text + "<br>" + GetComponentInParent<PizzaBuildingScript>().GetIngredientName(ingredientType);
+                            
+                            int ingredientType = inbTouching.GetComponent<MyIngredient>().myIngredient;
+                            if (GetComponentInParent<PizzaScript>().ingredients[ingredientType] == false)
+                            {
+                                if (grabSFX.enabled)
+                                {
+                                    grabSFX.Play();
+                                }
+                                GetComponentInParent<PizzaScript>().ingredientTotal += 1;
+                                GetComponentInParent<PizzaScript>().ingredients[ingredientType] = true;
+                                GetComponentInParent<PizzaBuildingScript>().pizzaContents.text = GetComponentInParent<PizzaBuildingScript>().pizzaContents.text + "<br>" + GetComponentInParent<PizzaBuildingScript>().GetIngredientName(ingredientType);
+                            }
+                        }
+                        else
+                        {
+                            if (missSFX.enabled)
+                            {
+                                missSFX.Play();
+                            }
                         }
                     }
                 }
@@ -176,5 +235,9 @@ public class GrabbingIngredients : MonoBehaviour
         }
     }
 
+    private void DestroyPizza()
+    {
+        Destroy(destroyPizza.gameObject);
+    }
     
 }

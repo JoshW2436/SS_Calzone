@@ -17,11 +17,16 @@ public class CookTime : MonoBehaviour
     private bool cookingDone = false;
     [HideInInspector]
     public PlayerScript scoreScript = null;
+    public ParticleSystem smokeSystem = null;
 
+    public AudioSource cookingSound = null;
+    public AudioSource hitSound = null;
+    public AudioSource doneSound = null;
     // Start is called before the first frame update
     void Start()
     {
         scoreScript = GameObject.Find("PlayerObj").gameObject.GetComponent<PlayerScript>();
+
     }
 
     // Update is called once per frame
@@ -29,10 +34,25 @@ public class CookTime : MonoBehaviour
     {
         if (cooking)
         {
-            cookBar.gameObject.SetActive(true);
-            cookBar.value = (Time.time - startTime )/ cookTime;
+            if (!cookingSound.isPlaying)
+            {
+                if (cookingSound.enabled)
+                {
+                    cookingSound.Play();
+                }
+                
+            }
+                cookBar.gameObject.SetActive(true);
+            float ratio = (Time.time - startTime) / cookTime;
+            cookBar.value = ratio;
+            cookingSound.pitch = 0.5f + (0.5f * ratio);
             if (Time.time > finishTime)
             {
+                GetComponent<SquashStretch>().squashing = true;
+                if (doneSound.enabled)
+                {
+                    doneSound.Play();
+                }
                 cooking = false;
                 cookingDone = true;
                 GetComponent<PizzaScript>().cooked = true;
@@ -40,7 +60,12 @@ public class CookTime : MonoBehaviour
         }
         else
         {
+            smokeSystem.Stop();
             cookBar.gameObject.SetActive(false);
+            if (cookingSound.isPlaying)
+            {
+                cookingSound.Stop();
+            }
         }
         
     }
@@ -51,18 +76,23 @@ public class CookTime : MonoBehaviour
         {
             if (collision.gameObject.tag == "PizzaLoose")
             {
-                if (collision.gameObject.GetComponent<PizzaScript>().cooked == false)
+                if (collision.gameObject.GetComponent<PizzaScript>().cooked == false && collision.gameObject.GetComponent<PizzaScript>().ingredientTotal > 0)
                 {
                     if (collision.gameObject.GetComponent<PizzaScript>().thrownPizza == true)
                     {
                         scoreScript.DistanceBonus(collision.gameObject.GetComponent<PizzaScript>().distanceThrown);
                     }
+                    if (hitSound.enabled)
+                    {
+                        hitSound.Play();
+                    }
+                    smokeSystem.Play();
                     cooking = true;
                     GetComponent<PizzaScript>().inherited = false;
                     GetComponent<PizzaScript>().inheritPizza = collision.gameObject;
                     GetComponent<PizzaScript>().destroyPizza = collision.gameObject;
                     GetComponent<PizzaScript>().PizzaAdded();
-
+                    GetComponent<SquashStretch>().squashing = true;
                     for (int i = 0; i < 10; i++)
                     {
                         if (GetComponent<PizzaScript>().ingredients[i] == true)
@@ -90,6 +120,7 @@ public class CookTime : MonoBehaviour
         cookingDone = false;
         cooking = false;
         GetComponent<PizzaScript>().cooked = false;
+        GetComponent<PizzaScript>().ingredientTotal = 0;
         for (int i = 0; i < GetComponent<PizzaScript>().ingredients.Length; i++)
         {
             GetComponent<PizzaScript>().ingredients[i] = false;
